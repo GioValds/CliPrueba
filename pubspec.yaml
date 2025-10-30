@@ -1,0 +1,25 @@
+name: testing_demo
+description: "A demo project for Flutter testing techniques"
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.19.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  http: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  mocktail: ^1.0.0
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

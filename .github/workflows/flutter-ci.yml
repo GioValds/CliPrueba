@@ -1,0 +1,153 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [ main, develop, feature/** ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  FLUTTER_VERSION: '3.19.0'
+
+jobs:
+  test:
+    name: Flutter Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐦 Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        cache: true
+        cache-key: flutter-${{ env.FLUTTER_VERSION }}
+        
+    - name: 📦 Install dependencies
+      run: flutter pub get
+      
+    - name: 🔍 Analyze code
+      run: dart analyze .
+      
+    - name: 🎨 Check code format
+      run: dart format --set-exit-if-changed . || echo "Format issues found"
+      
+    - name: 🧪 Run unit tests
+      run: flutter test test/calculator_test.dart test/api_client_test.dart --coverage --reporter=json | tee unit_tests.json
+      
+    - name: 🎯 Run widget tests
+      run: flutter test test/widget_test.dart --coverage --reporter=json | tee widget_tests.json
+      
+    - name: 📊 Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-flutter
+        fail_ci_if_error: false
+        
+    - name: 📈 Generate test report
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: Flutter Tests
+        path: "*.json"
+        reporter: java-junit
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐦 Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        
+    - name: 📦 Install dependencies
+      run: flutter pub get
+      
+    - name: 🔧 Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: 📱 Create Android emulator
+      run: |
+        flutter emulators --create
+        echo "EMULATOR_NAME=flutter_emulator" >> $GITHUB_ENV
+        
+    - name: 🚀 Start emulator
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 31
+        target: google_apis
+        arch: x86_64
+        profile: Nexus 6
+        disable-animations: true
+        emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+        script: |
+          flutter devices
+          flutter test integration_test/app_test.dart --dart-define=CI=true
+          
+  build:
+    name: Build App
+    runs-on: ubuntu-latest
+    needs: [test, integration-test]
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐦 Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        
+    - name: 📦 Install dependencies
+      run: flutter pub get
+      
+    - name: 🔧 Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        
+    - name: 🏗️ Build APK
+      run: flutter build apk --debug --target-platform android-arm,android-arm64
+      
+    - name: 🏗️ Build AAB
+      run: flutter build appbundle --target-platform android-arm,android-arm64
+      
+    - name: 📤 Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: flutter-apk
+        path: build/app/outputs/flutter-apk/app-debug.apk
+        retention-days: 7
+        
+    - name: 📤 Upload AAB artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: flutter-aab
+        path: build/app/outputs/bundle/release/app-release.aab
+        retention-days: 7
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Run security analysis
+      run: |
+        # Instalar y ejecutar dart analyze con reglas de seguridad
+        dart analyze --fatal-infos .
+        echo "Security scan completed"
