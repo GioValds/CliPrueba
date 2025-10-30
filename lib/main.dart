@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'widgets/calculator_widget.dart';
+import 'package:testing_demo/widgets/calculator_widget.dart'; // ✅ Cambiado a package import
 
 void main() {
   runApp(const MyApp());

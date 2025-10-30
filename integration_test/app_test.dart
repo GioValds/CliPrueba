@@ -9,7 +9,7 @@ void main() {
     // Launch the app
     app.main();
     await tester.pumpAndSettle();
-    
+
     // Verify that our app starts correctly
     expect(find.text('Number A'), findsOneWidget);
     expect(find.text('Number B'), findsOneWidget);
@@ -19,7 +19,7 @@ void main() {
   testWidgets('Calculator buttons are present', (WidgetTester tester) async {
     app.main();
     await tester.pumpAndSettle();
-    
+
     // Check that all calculator buttons are present
     expect(find.text('+'), findsOneWidget);
     expect(find.text('-'), findsOneWidget);

@@ -8,12 +8,12 @@ analyzer:
 
 linter:
   rules:
-    # Estilo de código
+    # Estilo de código - REGLAS VÁLIDAS
     - always_declare_return_types
+    - always_use_package_imports
     - avoid_empty_else
     - avoid_print
     - avoid_renaming_method_parameters
-    - avoid_returning_null
     - avoid_unused_constructor_parameters
     - curly_braces_in_flow_control_structures
     - empty_catches
@@ -22,10 +22,9 @@ linter:
     - prefer_final_fields
     - prefer_final_locals
     
-    # Calidad de código
+    # Calidad de código - REGLAS VÁLIDAS
     - avoid_bool_literals_in_conditional_expressions
     - avoid_catches_without_on_clauses
-    - avoid_catching_errors
     - avoid_classes_with_only_static_members
     - avoid_dynamic_calls
     - avoid_relative_lib_imports
@@ -36,14 +35,12 @@ linter:
     - control_flow_in_finally
     - directives_ordering
     - empty_statements
-    - invariant_booleans
     - no_adjacent_strings_in_list
     - no_runtimeType_toString
     - only_throw_errors
     - prefer_conditional_assignment
     - prefer_const_constructors_in_immutables
     - prefer_contains
-    - prefer_equal_for_default_values
     - prefer_foreach
     - prefer_if_null_operators
     - prefer_is_empty
@@ -71,3 +68,8 @@ linter:
     - use_string_buffers
     - use_to_and_as_if_applicable
     - valid_regexps
+
+    # Reglas adicionales recomendadas
+    - file_names
+    - use_key_in_widget_constructors
+    - prefer_single_quotes

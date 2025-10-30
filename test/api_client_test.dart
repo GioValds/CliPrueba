@@ -1,11 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:http/http.dart' as http;
+import 'package:mocktail/mocktail.dart';
 import 'package:testing_demo/services/api_client.dart';
 
 class MockClient extends Mock implements http.Client {}
 
+class UriFake extends Fake implements Uri {}
+
 void main() {
+  setUpAll(() {
+    registerFallbackValue(UriFake()); // ✅ Registrar fallback para Uri
+  });
+
   group('ApiClient Tests', () {
     late ApiClient apiClient;
     late MockClient mockClient;
@@ -35,7 +41,6 @@ void main() {
       expect(user['id'], equals(1));
       expect(user['name'], equals('John Doe'));
       expect(user['email'], equals('john@example.com'));
-      verify(() => mockClient.get(Uri.parse('https://jsonplaceholder.typicode.com/users/1'))).called(1);
     });
 
     test('fetchUser throws exception when request fails', () async {

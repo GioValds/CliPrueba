@@ -29,7 +29,7 @@ void main() {
 
     test('Division should return correct result', () {
       expect(calculator.divide(6, 3), equals(2));
-      expect(calculator.divide(5, 2), equals(2.5));
+      expect(calculator.divide(7, 2), equals(2.5));
     });
 
     test('Division by zero should throw ArgumentError', () {

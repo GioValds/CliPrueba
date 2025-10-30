@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/calculator.dart';
+import 'package:testing_demo/models/calculator.dart';
 
 class CalculatorWidget extends StatefulWidget {
   const CalculatorWidget({super.key});
@@ -17,7 +17,7 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
   void _calculate(String operation) {
     final double a = double.tryParse(_controllerA.text) ?? 0;
     final double b = double.tryParse(_controllerB.text) ?? 0;
-    
+
     try {
       setState(() {
         switch (operation) {
@@ -38,6 +38,11 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
     } on ArgumentError catch (e) {
       setState(() {
         _result = 'Error: ${e.message}';
+      });
+    } on Exception catch (e) {
+      // ✅ Cambiado de 'catch (e)' a 'on Exception catch (e)'
+      setState(() {
+        _result = 'Error: ${e.toString()}';
       });
     }
   }
