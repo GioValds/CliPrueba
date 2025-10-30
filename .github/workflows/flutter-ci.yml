@@ -129,17 +129,18 @@ jobs:
     - name: 🔧 Setup Android SDK
       uses: android-actions/setup-android@v3
       
-    - name: 📱 Create and start Android emulator
-      run: |
-        echo "y" | flutter emulators --create --name testing_emulator
-        flutter emulators --launch testing_emulator &
-        sleep 30
-        flutter devices
-      
-    - name: 🌐 Run integration tests
-      run: |
-        flutter test integration_test/app_test.dart --dart-define=CI=true
-      timeout-minutes: 10
+    - name: 📱 Setup Android Emulator
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 31
+        target: google_apis
+        arch: x86_64
+        profile: Nexus 6
+        disable-animations: true
+        emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+        script: |
+          flutter devices
+          flutter test integration_test/app_test.dart --dart-define=CI=true
 
   security-scan:
     name: Security Scan

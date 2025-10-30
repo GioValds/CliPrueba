@@ -29,9 +29,8 @@ void main() {
 
     test('Division should return correct result', () {
       expect(calculator.divide(6, 3), equals(2));
-      expect(calculator.divide(5, 2), closeTo(2.5, 0.000001)); // ✅ Usar closeTo
-      expect(calculator.divide(1, 3),
-          closeTo(0.333333, 0.000001)); // ✅ closeTo para decimales
+      expect(calculator.divide(5, 2), closeTo(2.5, 0.000001));
+      expect(calculator.divide(1, 3), closeTo(0.333333, 0.000001));
     });
 
     test('Division by zero should throw ArgumentError', () {
