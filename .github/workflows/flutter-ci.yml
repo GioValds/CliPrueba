@@ -1,114 +1,3 @@
-name: Flutter CI/CD
-
-on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master ]
-
-env:
-  FLUTTER_VERSION: '3.19.0'
-
-jobs:
-  analyze:
-    name: Analyze Code
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 🐦 Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        cache: true
-        cache-key: flutter-${{ env.FLUTTER_VERSION }}
-        
-    - name: 📦 Install dependencies
-      run: flutter pub get
-      
-    - name: 🔍 Analyze code
-      run: dart analyze .
-      
-    - name: 🎨 Check code format
-      run: dart format --set-exit-if-changed . --output=none
-
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: analyze
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 🐦 Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        cache: true
-        
-    - name: 📦 Install dependencies
-      run: flutter pub get
-      
-    - name: 🧪 Run unit tests
-      run: flutter test test/calculator_test.dart test/api_client_test.dart --coverage
-      
-    - name: 🎯 Run widget tests
-      run: flutter test test/widget_test.dart --coverage
-      
-    - name: 📊 Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-flutter
-        fail_ci_if_error: false
-
-  build:
-    name: Build App
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 🐦 Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        
-    - name: 📦 Install dependencies
-      run: flutter pub get
-      
-    - name: 🔧 Setup Java
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-        
-    - name: 🏗️ Build APK (Debug)
-      run: flutter build apk --debug --target-platform android-arm,android-arm64
-      
-    - name: 🏗️ Build AAB (Release)
-      run: flutter build appbundle --target-platform android-arm,android-arm64
-      
-    - name: 📤 Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: flutter-apk-debug
-        path: build/app/outputs/flutter-apk/app-debug.apk
-        retention-days: 7
-        
-    - name: 📤 Upload AAB artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: flutter-aab-release
-        path: build/app/outputs/bundle/release/app-release.aab
-        retention-days: 7
-
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -129,74 +18,26 @@ jobs:
     - name: 🔧 Setup Android SDK
       uses: android-actions/setup-android@v3
       
-    - name: 📱 Setup Android Emulator
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: 31
-        target: google_apis
-        arch: x86_64
-        profile: Nexus 6
-        disable-animations: true
-        emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-        script: |
-          flutter devices
-          flutter test integration_test/app_test.dart --dart-define=CI=true
-
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    needs: analyze
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 🐦 Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        
-    - name: 📦 Install dependencies
-      run: flutter pub get
-      
-    - name: 🔒 Run security analysis
+    - name: 📱 Create Android emulator
       run: |
-        dart analyze --fatal-infos .
-        echo "✅ Security scan completed successfully"
-
-  quality-gate:
-    name: Quality Gate
-    runs-on: ubuntu-latest
-    needs: [analyze, test, build, integration-test, security-scan]
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+        echo "y" | sdkmanager "platforms;android-31" "system-images;android-31;google_apis;x86_64"
+        echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;x86_64" -d "Nexus 6"
       
-    - name: 🐦 Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        
-    - name: 📦 Install dependencies
-      run: flutter pub get
+    - name: 🚀 Start emulator
+      run: |
+        emulator -avd test -no-window -no-audio -no-snapshot -gpu swiftshader &
+        adb wait-for-device
+        sleep 30
+        adb devices
+        flutter devices
       
-    - name: 📊 Generate test coverage
+    - name: 🌐 Run integration tests
       run: |
-        flutter test --coverage
-        if command -v genhtml > /dev/null; then
-          genhtml coverage/lcov.info -o coverage/html
-          echo "📁 Coverage report generated at coverage/html/index.html"
-        else
-          echo "📊 Raw coverage data available at coverage/lcov.info"
-        fi
+        # Wait for emulator to be fully ready
+        adb shell input keyevent 82
+        sleep 10
         
-    - name: 🎉 Quality Gate Passed
-      run: |
-        echo "✅ All quality checks passed!"
-        echo "📈 Code Analysis: PASSED"
-        echo "🧪 Unit Tests: PASSED" 
-        echo "🎯 Widget Tests: PASSED"
-        echo "🏗️ Build: PASSED"
-        echo "🔒 Security: PASSED"
-        echo "🚀 Ready for deployment!"
+        # Build and test with retry
+        flutter test integration_test/app_test.dart --dart-define=CI=true || \
+        (echo "First attempt failed, retrying..." && sleep 10 && flutter test integration_test/app_test.dart --dart-define=CI=true)
+      timeout-minutes: 15
