@@ -50,7 +50,7 @@ class _CalculatorWidgetState extends State<CalculatorWidget> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(17.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
