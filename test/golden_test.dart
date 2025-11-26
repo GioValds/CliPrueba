@@ -4,7 +4,8 @@ import 'package:testing_demo/widgets/calculator_widget.dart';
 
 void main() {
   group('CalculatorWidget Visual Tests', () {
-    testWidgets('CalculatorWidget displays correctly', (WidgetTester tester) async {
+    testWidgets('CalculatorWidget displays correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -18,7 +19,8 @@ void main() {
       expect(find.text('Number B'), findsOneWidget);
     });
 
-    testWidgets('CalculatorWidget handles number input', (WidgetTester tester) async {
+    testWidgets('CalculatorWidget handles number input',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
