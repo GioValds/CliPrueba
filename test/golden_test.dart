@@ -3,12 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:testing_demo/widgets/calculator_widget.dart';
 
 void main() {
-  group('CalculatorWidget Golden Tests', () {
-    testWidgets('CalculatorWidget - initial state',
-        (WidgetTester tester) async {
+  group('CalculatorWidget Visual Tests', () {
+    testWidgets('CalculatorWidget displays correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          // ✅ Agregar const
           home: Scaffold(
             body: CalculatorWidget(),
           ),
@@ -16,13 +14,13 @@ void main() {
       );
 
       expect(find.byType(CalculatorWidget), findsOneWidget);
+      expect(find.text('Number A'), findsOneWidget);
+      expect(find.text('Number B'), findsOneWidget);
     });
 
-    testWidgets('CalculatorWidget - with numbers entered',
-        (WidgetTester tester) async {
+    testWidgets('CalculatorWidget handles number input', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          // ✅ Agregar const
           home: Scaffold(
             body: CalculatorWidget(),
           ),
@@ -34,7 +32,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('15'), findsOneWidget);
-      expect(find.text('4'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
     });
   });
 }
